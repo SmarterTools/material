@@ -193,6 +193,8 @@ function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming,
     elements.$.scrollContainer.detach();
     elements.$.root.append(elements.$.scrollContainer);
     if ($animate.pin) $animate.pin(elements.$.scrollContainer, $rootElement);
+		if ($attrs.mdMenuContainerClass)
+			elements.$.scrollContainer.addClass($attrs.mdMenuContainerClass);
   }
 
   /**
@@ -557,9 +559,14 @@ function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming,
         onListLeave();
 
         if (ctrl.hidden || ctrl.loading || ctrl.index < 0 || ctrl.matches.length < 1) return;
+				if (hasSelection()) return;
+				event.stopPropagation();
+				event.preventDefault();
         select(ctrl.index);
         break;
       case $mdConstant.KEY_CODE.ENTER:
+			case $mdConstant.KEY_CODE.COMMA:
+			case $mdConstant.KEY_CODE.SEMICOLON:
         if (ctrl.hidden || ctrl.loading || ctrl.index < 0 || ctrl.matches.length < 1) return;
         if (hasSelection()) return;
         event.stopPropagation();

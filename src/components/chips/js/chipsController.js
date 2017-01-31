@@ -586,7 +586,8 @@ MdChipsCtrl.prototype.removeChipAndFocusInput = function (index) {
     // Wait for the input to move horizontally, because the chip was removed.
     // This can lead to an incorrect dropdown position.
     this.autocompleteCtrl.hidden = true;
-    this.$mdUtil.nextTick(this.onFocus.bind(this));
+    if (this.$mdUtil != undefined)
+      this.$mdUtil.nextTick(this.onFocus.bind(this));
   } else {
     this.onFocus();
   }
@@ -714,6 +715,16 @@ MdChipsCtrl.prototype.onInputBlur = function () {
     this.appendChip(this.getChipBuffer().trim());
     this.resetChipBuffer();
   }
+  else {
+    var _this = this;
+    scope.$evalAsync(function () {
+  			if (_this.autocompleteCtrl) {
+  				_this.autocompleteCtrl.hidden = true;
+  				_this.autocompleteCtrl.listLeave();
+  				_this.$element[0].querySelector('input').value = "";
+  			}
+  		});
+  }
 };
 
 /**
@@ -783,7 +794,12 @@ MdChipsCtrl.prototype.shouldAddOnBlur = function() {
     isModelValid = isModelValid && this.userInputNgModelCtrl.$valid;
   }
 
-  return this.addOnBlur && !this.requireMatch && chipBuffer && isModelValid && !isAutocompleteShowing;
+  /* Custom ST code, prevents md-add-on-blur from intercepting click events for autocomplete list items and the remove-from-list icon */
+  var smarterToolsVirtualRepeatCheck = document.activeElement.hasAttribute('md-virtual-repeat') ||
+    document.activeElement.classList.contains('st-autocomplete-icon') ||
+    document.activeElement.classList.contains('md-confirm-button');
+		
+  return !smarterToolsVirtualRepeatCheck && this.addOnBlur && !this.requireMatch && chipBuffer && isModelValid && !isAutocompleteShowing;
 };
 
 MdChipsCtrl.prototype.hasFocus = function () {
