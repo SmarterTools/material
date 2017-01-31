@@ -715,16 +715,16 @@ MdChipsCtrl.prototype.onInputBlur = function () {
     this.appendChip(this.getChipBuffer().trim());
     this.resetChipBuffer();
   }
-  else {
-    var _this = this;
-    scope.$evalAsync(function () {
-  			if (_this.autocompleteCtrl) {
-  				_this.autocompleteCtrl.hidden = true;
-  				_this.autocompleteCtrl.listLeave();
-  				_this.$element[0].querySelector('input').value = "";
-  			}
-  		});
-  }
+  // else {
+  //   var _this = this;
+  //   _this.$scope.$evalAsync(function () {
+  // 			if (_this.autocompleteCtrl) {
+  // 				_this.autocompleteCtrl.hidden = true;
+  // 				_this.autocompleteCtrl.listLeave();
+  // 				_this.$element[0].querySelector('input').value = "";
+  // 			}
+  // 		});
+  // }
 };
 
 /**
@@ -795,9 +795,9 @@ MdChipsCtrl.prototype.shouldAddOnBlur = function() {
   }
 
   /* Custom ST code, prevents md-add-on-blur from intercepting click events for autocomplete list items and the remove-from-list icon */
-  var smarterToolsVirtualRepeatCheck = document.activeElement.hasAttribute('md-virtual-repeat') ||
+  var smarterToolsVirtualRepeatCheck = false;/* document.activeElement.hasAttribute('md-virtual-repeat') ||
     document.activeElement.classList.contains('st-autocomplete-icon') ||
-    document.activeElement.classList.contains('md-confirm-button');
+    document.activeElement.classList.contains('md-confirm-button');*/
 		
   return !smarterToolsVirtualRepeatCheck && this.addOnBlur && !this.requireMatch && chipBuffer && isModelValid && !isAutocompleteShowing;
 };
