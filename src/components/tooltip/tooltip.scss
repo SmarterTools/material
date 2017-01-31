@@ -57,7 +57,7 @@ $tooltip-max-width: 32px !default;
     transition: $swift-ease-out;
     transition-duration: 150ms;
     transform: scale(1);
-    opacity: 0.9;
+    opacity: 0.95;
   }
   &.md-hide {
     transition: $swift-ease-in;
