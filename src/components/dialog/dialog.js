@@ -746,58 +746,9 @@ function MdDialogProvider($$interimElementProvider) {
       showBackdrop(scope, element, options);
       activateListeners(element, options);
 
-				$(element).hide();
-				scope.$$postDigest(function () {
-					setTimeout(function () {
-						try {
-							$(element).show();
-							var tabContentAreas = $('md-tab-content').children();
-							var tcHeight = 0;
-							$.each(tabContentAreas, function (i, e) {
-								var h = $(e).outerHeight();
-								if (h > tcHeight)
-									tcHeight = h;
-							})
-							if ($('md-tab-content').length != 0)
-								$('md-dialog-content').css('flex-basis', tcHeight + $('md-dialog-content').outerHeight() + 25)
-
-							if ($('md-tab-content').length != 0) {
-								$('md-tab-content').scroll(function () {
-									$.each($('md-tab-content ul'), function (i, v) {
-										var newTop = $(v).parent().offset().top - ($('md-tab-content').height() * .215);
-										if (newTop < 0)
-											newTop = 0;
-										$(v).css({ top: newTop });
-									});
-									//$($('.st-dropdown-menu')[4]).css({ top: $($('.st-dropdown-menu')[4]).parent().offset().top - 85 })
-								})
-
-								$.each($('md-tab-content ul'), function (i, v) {
-									$(v).css({ width: $(v).parent().width() });
-								});
-							}
-							else {
-								$('md-dialog-content').scroll(function () {
-									$.each($('md-dialog-content ul'), function (i, v) {
-										var newTop = $(v).parent().position().top + 35;
-										if (newTop < 0)
-											newTop = 0;
-										$(v).css({ top: newTop });
-									});
-
-								})
-
-								$.each($('md-dialog-content ul'), function (i, v) {
-									$(v).css({ width: $(v).parent().width() });
-								});
-							}
-						}
-						catch (ex) { }
-					})
-				});
-
       return dialogPopIn(element, options)
         .then(function() {
+          scope.$$postDigest(function(){ resizeToFixedTabs(element); });
           lockScreenReader(element, options);
           warnDeprecatedActions();
           focusOnOpen();
@@ -1231,12 +1182,25 @@ function MdDialogProvider($$interimElementProvider) {
       };
     }
 
+    function resizeToFixedTabs(element) {
+      var tabs = $(element).find('md-tabs:not([md-dynamic-height])');
+      if (tabs.length == 0) 
+        return;
+
+      var subItems = tabs.find('md-tab-content');
+      if (subItems.length == 0)
+        return;
+
+      var content = element.find('md-dialog-content');
+      content.css('flex-basis', 350)
+    }
+
     /**
      *  Dialog open and pop-in animation
      */
     function dialogPopIn(container, options) {
       // Add the `md-dialog-container` to the DOM
-      options.parent.append(container);
+      options.parent.append(container); 
       options.reverseContainerStretch = stretchDialogContainerToViewport(container, options);
 
       var dialogEl = container.find('md-dialog');
