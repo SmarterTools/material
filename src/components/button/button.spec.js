@@ -39,6 +39,22 @@ describe('md-button', function() {
       expect($log.warn).not.toHaveBeenCalled();
     }));
 
+   it('should not expect an aria-label if element has translate directive', inject(function($compile, $rootScope, $log) {
+      spyOn($log, 'warn');
+
+      var button = $compile('<md-button translate="whatever"></md-button>')($rootScope);
+      expect(button.attr('aria-label')).toBeUndefined();
+      expect($log.warn).not.toHaveBeenCalled();
+    }));
+
+   it('should not expect an aria-label if element has translate-once directive', inject(function($compile, $rootScope, $log) {
+      spyOn($log, 'warn');
+
+      var button = $compile('<md-button translate-once="whatever"></md-button>')($rootScope);
+      expect(button.attr('aria-label')).toBeUndefined();
+      expect($log.warn).not.toHaveBeenCalled();
+    }));
+
     it('should not set an aria-label if the text content uses bindings', inject(function($$rAF, $compile, $rootScope, $log, $timeout) {
       spyOn($log, 'warn');
 
