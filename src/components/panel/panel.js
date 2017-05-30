@@ -111,6 +111,7 @@ angular
  *   }
  *
  *   function PanelMenuCtrl(mdPanelRef) {
+ *     // The controller is provided with an import named 'mdPanelRef'
  *     this.closeMenu = function() {
  *       mdPanelRef && mdPanelRef.close();
  *     };
@@ -183,7 +184,7 @@ angular
  *       clickOutsideToClose: true,
  *       escapeToClose: true,
  *       focusOnOpen: true
- *     }
+ *     };
  *
  *     $mdPanel.open(config)
  *         .then(function(result) {
@@ -216,7 +217,7 @@ angular
  *     interaction when there is no backdrop and events are propagated. Defaults
  *     to an arbitrary string that is not tracked.
  *   - `template` - `{string=}`: HTML template to show in the panel. This
- *     **must** be trusted HTML with respect to Angular’s
+ *     **must** be trusted HTML with respect to AngularJS’s
  *     [$sce service](https://docs.angularjs.org/api/ng/service/$sce).
  *   - `templateUrl` - `{string=}`: The URL that will be used as the content of
  *     the panel.
@@ -235,7 +236,8 @@ angular
  *   - `locals` - `{Object=}`: An object containing key/value pairs. The keys
  *     will be used as names of values to inject into the controller. For
  *     example, `locals: {three: 3}` would inject `three` into the controller,
- *     with the value 3.
+ *     with the value 3. 'mdPanelRef' is a reserved key, and will always 
+ *     be set to the created MdPanelRef instance.
  *   - `resolve` - `{Object=}`: Similar to locals, except it takes promises as
  *     values. The panel will not open until all of the promises resolve.
  *   - `attachTo` - `{(string|!angular.JQLite|!Element)=}`: The element to
@@ -987,7 +989,7 @@ function clearPresets() {
 
 
 /**
- * Represents the `$get` method of the Angular provider. From here, a new
+ * Represents the `$get` method of the AngularJS provider. From here, a new
  * reference to the MdPanelService is returned where the needed arguments are
  * passed in including the MdPanelProvider `_presets`.
  * @param {!Object} _presets
@@ -1309,7 +1311,7 @@ MdPanelService.prototype._wrapTemplate = function(origTemplate) {
   // height and width for positioning.
   return '' +
       '<div class="md-panel-outer-wrapper">' +
-      '  <div class="md-panel" style="left: -9999px;">' + template + '</div>' +
+      '  <div class="md-panel _md-panel-offscreen">' + template + '</div>' +
       '</div>';
 };
 
@@ -1325,7 +1327,7 @@ MdPanelService.prototype._wrapTemplate = function(origTemplate) {
 MdPanelService.prototype._wrapContentElement = function(contentElement) {
   var wrapper = angular.element('<div class="md-panel-outer-wrapper">');
 
-  contentElement.addClass('md-panel').css('left', '-9999px');
+  contentElement.addClass('md-panel _md-panel-offscreen');
   wrapper.append(contentElement);
 
   return wrapper;
@@ -1724,7 +1726,7 @@ MdPanelRef.prototype.hide = function() {
 MdPanelRef.prototype.addClass = function(newClass, toElement) {
   this._$log.warn(
       'mdPanel: The addClass method is in the process of being deprecated. ' +
-      'Full deprecation is scheduled for the Angular Material 1.2 release. ' +
+      'Full deprecation is scheduled for the AngularJS Material 1.2 release. ' +
       'To achieve the same results, use the panelContainer or panelEl ' +
       'JQLite elements that are referenced in MdPanelRef.');
 
@@ -1755,7 +1757,7 @@ MdPanelRef.prototype.addClass = function(newClass, toElement) {
 MdPanelRef.prototype.removeClass = function(oldClass, fromElement) {
   this._$log.warn(
       'mdPanel: The removeClass method is in the process of being deprecated. ' +
-      'Full deprecation is scheduled for the Angular Material 1.2 release. ' +
+      'Full deprecation is scheduled for the AngularJS Material 1.2 release. ' +
       'To achieve the same results, use the panelContainer or panelEl ' +
       'JQLite elements that are referenced in MdPanelRef.');
 
@@ -1786,7 +1788,7 @@ MdPanelRef.prototype.removeClass = function(oldClass, fromElement) {
 MdPanelRef.prototype.toggleClass = function(toggleClass, onElement) {
   this._$log.warn(
       'mdPanel: The toggleClass method is in the process of being deprecated. ' +
-      'Full deprecation is scheduled for the Angular Material 1.2 release. ' +
+      'Full deprecation is scheduled for the AngularJS Material 1.2 release. ' +
       'To achieve the same results, use the panelContainer or panelEl ' +
       'JQLite elements that are referenced in MdPanelRef.');
 
@@ -1881,6 +1883,7 @@ MdPanelRef.prototype._createPanel = function() {
       // Handle click and touch events for the panel container.
       if (self.config['propagateContainerEvents']) {
         self.panelContainer.css('pointer-events', 'none');
+        self.panelEl.css('pointer-events', 'all');
       }
 
       // Panel may be outside the $rootElement, tell ngAnimate to animate
@@ -1918,8 +1921,8 @@ MdPanelRef.prototype._addStyles = function() {
       // Theme the element and container.
       self._setTheming();
 
-      // Remove left: -9999px and add hidden class.
-      self.panelEl.css('left', '');
+      // Remove offscreen class and add hidden class.
+      self.panelEl.removeClass('_md-panel-offscreen');
       self.panelContainer.addClass(MD_PANEL_HIDDEN);
 
       resolve(self);
@@ -1990,6 +1993,7 @@ MdPanelRef.prototype._updatePosition = function(init) {
 
     // Hide the panel now that position is known.
     if (init) {
+      this.panelEl.removeClass('_md-panel-offscreen');
       this.panelContainer.addClass(MD_PANEL_HIDDEN);
     }
 

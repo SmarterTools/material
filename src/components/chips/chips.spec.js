@@ -295,7 +295,7 @@ describe('<md-chips>', function() {
           input.triggerHandler('blur');
 
           // Flush the timeout after each blur, because custom inputs have listeners running
-          // in an Angular digest.
+          // in an AngularJS digest.
           $timeout.flush();
 
           expect(scope.items.length).toBe(4);
@@ -306,7 +306,7 @@ describe('<md-chips>', function() {
           input.triggerHandler('blur');
 
           // Flush the timeout after each blur, because custom inputs have listeners running
-          // in an Angular digest.
+          // in an AngularJS digest.
           $timeout.flush();
 
           expect(scope.items.length).toBe(4);
@@ -698,7 +698,18 @@ describe('<md-chips>', function() {
            */
           function updateInputCursor() {
             if (isValidInput) {
-              input[0].selectionStart = input[0].selectionEnd = input[0].value.length;
+              var inputLength = input[0].value.length;
+
+              try {
+                input[0].selectionStart = input[0].selectionEnd = inputLength;
+              } catch (e) {
+                // Chrome does not allow setting a selection for number inputs and just throws
+                // a DOMException as soon as something tries to set a selection programmatically.
+                // Faking the selection properties for the ChipsController works for our tests.
+                var selectionDescriptor = { writable: true, value: inputLength };
+                Object.defineProperty(input[0], 'selectionStart', selectionDescriptor);
+                Object.defineProperty(input[0], 'selectionEnd', selectionDescriptor);
+              }
             }
           }
 
@@ -842,7 +853,8 @@ describe('<md-chips>', function() {
         expect(document.activeElement).toHaveClass('md-chip-content');
 
         // At/after 300ms timeout, focus should be on the input
-        $timeout.flush(1);
+        $timeout.flush();
+
         expect(document.activeElement.tagName.toUpperCase()).toEqual('INPUT');
 
         // cleanup
@@ -864,7 +876,7 @@ describe('<md-chips>', function() {
         expect(document.activeElement).toHaveClass('md-chip-content');
 
         // At/after custom timeout, focus should be on the input
-        $timeout.flush(1);
+        $timeout.flush();
         expect(document.activeElement.tagName.toUpperCase()).toEqual('INPUT');
 
         // cleanup
