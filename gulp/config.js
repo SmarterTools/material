@@ -10,7 +10,22 @@ module.exports = {
   ' * v' + VERSION + '\n' +
   ' */\n',
   jsBaseFiles: [
-    'src/core/**/*.js'
+	'src/core/**/*.js',
+	'!src/components/bottomSheet/**',
+	'!src/components/colors/**',
+	'!src/components/datepicker/**',
+	'!src/components/fabActions/**',
+	'!src/components/fabSpeedDial/**',
+	'!src/components/fabToolbar/**',
+	'!src/components/gridList/**',
+	'!src/components/list/**',
+	'!src/components/menuBar/**',
+	'!src/components/navBar/**',
+	'!src/components/slider/**',
+	'!src/components/sticky/**',
+	'!src/components/subheader/**',
+	'!src/components/toast/**',
+	'!src/components/truncate/**'
   ],
   jsFiles: [
     'src/**/*.js',
