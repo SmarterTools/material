@@ -565,8 +565,7 @@ function MdAutocompleteCtrl ($scope, $element, $mdUtil, $mdConstant, $mdTheming,
         select(ctrl.index);
         break;
       case $mdConstant.KEY_CODE.ENTER:
-			case $mdConstant.KEY_CODE.COMMA:
-			case $mdConstant.KEY_CODE.SEMICOLON:
+	  case $mdConstant.KEY_CODE.COMMA:
         if (ctrl.hidden || ctrl.loading || ctrl.index < 0 || ctrl.matches.length < 1) return;
         if (hasSelection()) return;
         event.stopPropagation();

@@ -276,6 +276,38 @@ MdChipsCtrl.prototype.inputKeydown = function(event) {
   }
 };
 
+MdChipsCtrl.prototype.inputKeypress = function(event) {
+  var chipBuffer = this.getChipBuffer();
+
+  // If we have an autocomplete, and it handled the event, we have nothing to do
+  if (this.autocompleteCtrl && event.isDefaultPrevented && event.isDefaultPrevented()) {
+    return;
+  }
+
+  if (!this.separatorKeys || this.separatorKeys.length < 1) {
+    this.separatorKeys = [];
+  }
+  
+  //only check negative keys since we use that as the indicator for checking charcode instead of keycode.
+  var tempSepKeys = [];
+  for(var i = 0; i < this.separatorKeys.length; ++i) {
+	  if(this.separatorKeys[i] < 0) { tempSepKeys.push(this.separatorKeys[i]); }
+  }
+
+  if (tempSepKeys.indexOf(-(event.charCode)) !== -1) {
+    if ((this.autocompleteCtrl && this.requireMatch) || !chipBuffer) return;
+    event.preventDefault();
+
+    // Only append the chip and reset the chip buffer if the max chips limit isn't reached.
+    if (this.hasMaxChipsReached()) return;
+
+    this.appendChip(chipBuffer.trim());
+    this.resetChipBuffer();
+
+    return false;
+  }
+};
+
 /**
  * Returns the cursor position of the specified input element.
  * @param element HTMLInputElement
@@ -753,6 +785,7 @@ MdChipsCtrl.prototype.configureUserInput = function(inputElement) {
   inputElement
       .attr({ tabindex: 0 })
       .on('keydown', function(event) { scopeApplyFn(event, ctrl.inputKeydown) })
+	  .on('keypress', function(event) { scopeApplyFn(event, ctrl.inputKeypress) })
       .on('focus', function(event) { scopeApplyFn(event, ctrl.onInputFocus) })
       .on('blur', function(event) { scopeApplyFn(event, ctrl.onInputBlur) })
 };
