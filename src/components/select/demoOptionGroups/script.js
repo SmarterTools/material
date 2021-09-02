@@ -2,10 +2,10 @@ angular
     .module('selectDemoOptGroups', ['ngMaterial'])
     .controller('SelectOptGroupController', function($scope) {
       $scope.sizes = [
-          "small (12-inch)",
-          "medium (14-inch)",
-          "large (16-inch)",
-          "insane (42-inch)"
+        { surcharge: 'none', name: "small (12-inch)" },
+        { surcharge: 'none', name: "medium (14-inch)" },
+        { surcharge: 'extra', name: "large (16-inch)" },
+        { surcharge: 'extra', name: "giant (42-inch)" }
       ];
       $scope.toppings = [
         { category: 'meat', name: 'Pepperoni' },
@@ -22,7 +22,7 @@ angular
         var numberOfToppings = this.selectedToppings.length;
 
         // If there is more than one topping, we add an 'and'
-        // to be gramatically correct. If there are 3+ toppings
+        // to be grammatically correct. If there are 3+ toppings,
         // we also add an oxford comma.
         if (numberOfToppings > 1) {
           var needsOxfordComma = numberOfToppings > 2;

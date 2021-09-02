@@ -170,7 +170,7 @@ describe('md-button', function() {
   describe('with ng-disabled', function() {
 
     it('should not set `tabindex` when used without anchor attributes', inject(function ($compile, $rootScope, $timeout) {
-      var scope = angular.extend( $rootScope.$new(), { isDisabled : true } );
+      var scope = angular.extend($rootScope.$new(), { isDisabled : true });
       var button = $compile('<md-button ng-disabled="isDisabled">button</md-button>')(scope);
       $rootScope.$apply();
 
@@ -178,7 +178,7 @@ describe('md-button', function() {
     }));
 
     it('should set `tabindex == -1` when used with href', inject(function ($compile, $rootScope, $timeout) {
-      var scope = angular.extend( $rootScope.$new(), { isDisabled : true } );
+      var scope = angular.extend($rootScope.$new(), { isDisabled : true });
       var button = $compile('<md-button ng-disabled="isDisabled" href="#nowhere">button</md-button>')(scope);
 
       $rootScope.$apply();
@@ -192,7 +192,7 @@ describe('md-button', function() {
     }));
 
     it('should set `tabindex == -1` when used with ng-href', inject(function ($compile, $rootScope, $timeout) {
-      var scope = angular.extend( $rootScope.$new(), { isDisabled : true, url : "http://material.angularjs.org" });
+      var scope = angular.extend($rootScope.$new(), { isDisabled : true, url : "http://material.angularjs.org" });
       var button = $compile('<md-button ng-disabled="isDisabled" ng-href="url">button</md-button>')(scope);
       $rootScope.$apply();
 
@@ -202,7 +202,7 @@ describe('md-button', function() {
     it('should not trigger click on button when disabled', inject(function ($compile, $rootScope) {
       var clicked = false;
       var onClick = function(){ clicked = true;};
-      var scope   = angular.extend( $rootScope.$new(), { isDisabled : true, onClick : onClick} );
+      var scope   = angular.extend($rootScope.$new(), { isDisabled : true, onClick : onClick});
 
       var element = $compile('<md-button ng-disabled="isDisabled" ng-click="onClick()">button</md-button>')(scope);
       $rootScope.$apply();
@@ -214,7 +214,7 @@ describe('md-button', function() {
     it('should not trigger click on anchor when disabled', inject(function ($compile, $rootScope) {
       var clicked = false;
       var onClick = function(){ clicked = true;};
-      var scope   = angular.extend( $rootScope.$new(), { isDisabled : true, onClick : onClick} );
+      var scope   = angular.extend($rootScope.$new(), { isDisabled : true, onClick : onClick});
 
       var element = $compile('<md-button ng-disabled="isDisabled" ng-href="#" ng-click="onClick()">button</md-button>')(scope);
       $rootScope.$apply();

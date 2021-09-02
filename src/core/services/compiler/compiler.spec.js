@@ -2,7 +2,7 @@ describe('$mdCompiler service', function() {
   beforeEach(module('material.core'));
 
   function compile(options) {
-    var compileData;
+    var compileData = null;
     inject(function($mdCompiler, $rootScope) {
       $mdCompiler.compile(options).then(function(data) {
         compileData = data;
@@ -11,7 +11,6 @@ describe('$mdCompiler service', function() {
     });
     return compileData;
   }
-
 
   describe('setup', function() {
 
@@ -112,7 +111,7 @@ describe('$mdCompiler service', function() {
         var data = compile({
           template: '<span>hello</span>'
         });
-        var scope = $rootScope.$new();
+        var scope = $rootScope.$new(false);
         data.link(scope);
         expect(data.element.scope()).toBe(scope);
       }));
@@ -127,7 +126,7 @@ describe('$mdCompiler service', function() {
             this.injectedOne = one;
           }
         });
-        var scope = $rootScope.$new();
+        var scope = $rootScope.$new(false);
         data.link(scope);
         expect(data.element.controller()).toBeTruthy();
         expect(data.element.controller().injectedOne).toBe(1);
@@ -143,7 +142,7 @@ describe('$mdCompiler service', function() {
           }
         });
 
-        var scope = $rootScope.$new();
+        var scope = $rootScope.$new(false);
         data.link(scope);
 
         expect(ctrlElement).toBe(data.element);
@@ -155,150 +154,75 @@ describe('$mdCompiler service', function() {
           controller: function Ctrl() {},
           controllerAs: 'myControllerAs'
         });
-        var scope = $rootScope.$new();
+        var scope = $rootScope.$new(false);
         data.link(scope);
         expect(scope.myControllerAs).toBe(data.element.controller());
       }));
-
     });
-
   });
 
-  [
-      {respectPreAssignBindingsEnabled: true},
-      {respectPreAssignBindingsEnabled: false},
-      // TODO change `equivalentTo` to `true` in Material 1.2.
-      {respectPreAssignBindingsEnabled: '"default"', equivalentTo: false}
-  ].forEach(function(options) {
-    var realRespectPreAssignBindingsEnabled = options.respectPreAssignBindingsEnabled;
-    var respectPreAssignBindingsEnabled = angular.isDefined(options.equivalentTo) ?
-      options.equivalentTo :
-      realRespectPreAssignBindingsEnabled;
+  function compileAndLink(options) {
+    var compileData = null;
 
-    describe('with respectPreAssignBindingsEnabled set to ' + realRespectPreAssignBindingsEnabled, function() {
-      var preAssignBindingsEnabledInAngularJS = angular.version.minor < 6;
-
-      beforeEach(function() {
-        module(function($mdCompilerProvider) {
-          // Don't set the value so that the default state can be tested.
-          if (typeof realRespectPreAssignBindingsEnabled === 'boolean') {
-            $mdCompilerProvider.respectPreAssignBindingsEnabled(realRespectPreAssignBindingsEnabled);
-          }
-        });
-      });
-      
-      function compileAndLink(options) {
-        var compileData;
-
-        inject(function($mdCompiler, $rootScope) {
-          $mdCompiler.compile(options).then(function(data) {
-            data.link($rootScope);
-            compileData = data;
-          });
-
-          $rootScope.$apply();
-        });
-
-        return compileData;
-      }
-
-      it('should call $onInit even if bindToController is set to false', function() {
-        var isInstantiated = false;
-
-        function TestController($scope, name) {
-          isInstantiated = true;
-          expect($scope.$apply).toBeTruthy();
-          expect(name).toBe('Bob');
-        }
-
-        TestController.prototype.$onInit = jasmine.createSpy('$onInit');
-
-        compileAndLink({
-          template: 'hello',
-          controller: TestController,
-          bindToController: false,
-          locals: {name: 'Bob'}
-        });
-
-        expect(TestController.prototype.$onInit).toHaveBeenCalledTimes(1);
-        expect(isInstantiated).toBe(true);
+    inject(function($mdCompiler, $rootScope) {
+      $mdCompiler.compile(options).then(function(data) {
+        data.link($rootScope);
+        compileData = data;
       });
 
-      // Bindings are not preassigned only if we respect the AngularJS config and they're
-      // disabled there. This logic will change in Material 1.2.0.
-      if (respectPreAssignBindingsEnabled && !preAssignBindingsEnabledInAngularJS) {
-        it('disabled should assign bindings after constructor', function() {
-          var isInstantiated = false;
-
-          function TestController($scope) {
-            isInstantiated = true;
-            expect($scope.$apply).toBeTruthy();
-            expect(this.name).toBeUndefined();
-          }
-
-          TestController.prototype.$onInit = function() {
-            expect(this.name).toBe('Bob');
-          };
-
-          spyOn(TestController.prototype, '$onInit').and.callThrough();
-
-          compileAndLink({
-            template: 'hello',
-            controller: TestController,
-            controllerAs: 'ctrl',
-            bindToController: true,
-            locals: {name: 'Bob'}
-          });
-
-          expect(TestController.prototype.$onInit).toHaveBeenCalledTimes(1);
-          expect(isInstantiated).toBe(true);
-        });
-      } else {
-        it('enabled should assign bindings at instantiation', function() {
-          var isInstantiated = false;
-
-          function TestController($scope) {
-            isInstantiated = true;
-            expect($scope.$apply).toBeTruthy();
-            expect(this.name).toBe('Bob');
-          }
-
-          compileAndLink({
-            template: 'hello',
-            controller: TestController,
-            controllerAs: 'ctrl',
-            bindToController: true,
-            locals: {name: 'Bob'}
-          });
-
-          expect(isInstantiated).toBe(true);
-        });
-
-        it('enabled should assign bindings at instantiation even if $onInit defined', function() {
-          var isInstantiated = false;
-
-          function TestController($scope) {
-            isInstantiated = true;
-            expect($scope.$apply).toBeTruthy();
-            expect(this.name).toBe('Bob');
-          }
-
-          TestController.prototype.$onInit = jasmine.createSpy('$onInit');
-
-          compileAndLink({
-            template: 'hello',
-            controller: TestController,
-            controllerAs: 'ctrl',
-            bindToController: true,
-            locals: {name: 'Bob'}
-          }, true);
-
-          expect(TestController.prototype.$onInit).toHaveBeenCalledTimes(1);
-          expect(isInstantiated).toBe(true);
-        });
-      }
-
+      $rootScope.$apply();
     });
+
+    return compileData;
+  }
+
+  it('should call $onInit even if bindToController is set to false', function() {
+    var isInstantiated = false;
+
+    function TestController($scope, name) {
+      isInstantiated = true;
+      expect($scope.$apply).toBeTruthy();
+      expect(name).toBe('Bob');
+    }
+
+    TestController.prototype.$onInit = jasmine.createSpy('$onInit');
+
+    compileAndLink({
+      template: 'hello',
+      controller: TestController,
+      bindToController: false,
+      locals: {name: 'Bob'}
+    });
+
+    expect(TestController.prototype.$onInit).toHaveBeenCalledTimes(1);
+    expect(isInstantiated).toBe(true);
+  });
+
+  it('should assign bindings after constructor', function() {
+    var isInstantiated = false;
+
+    function TestController($scope) {
+      isInstantiated = true;
+      expect($scope.$apply).toBeTruthy();
+      expect(this.name).toBeUndefined();
+    }
+
+    TestController.prototype.$onInit = function() {
+      expect(this.name).toBe('Bob');
+    };
+
+    spyOn(TestController.prototype, '$onInit').and.callThrough();
+
+    compileAndLink({
+      template: 'hello',
+      controller: TestController,
+      controllerAs: 'ctrl',
+      bindToController: true,
+      locals: {name: 'Bob'}
+    });
+
+    expect(TestController.prototype.$onInit).toHaveBeenCalledTimes(1);
+    expect(isInstantiated).toBe(true);
   });
 
   describe('with contentElement', function() {
@@ -400,7 +324,7 @@ describe('$mdCompiler service', function() {
 
     it('should preserve a previous linked scope', function() {
 
-      var scope = $rootScope.$new();
+      var scope = $rootScope.$new(false);
 
       var data = compile({
         contentElement: $compile('<div>With Scope</div>')(scope)
@@ -427,5 +351,97 @@ describe('$mdCompiler service', function() {
 
   });
 
+  describe('with ES6 classes', function() {
+    var $mdCompiler, pageScope, $rootScope;
 
+    beforeEach(module('material.core'));
+
+    beforeEach(inject(function($injector) {
+      $mdCompiler = $injector.get('$mdCompiler');
+      $rootScope = $injector.get('$rootScope');
+      pageScope = $rootScope.$new(false);
+    }));
+
+    it('should assign bindings by $onInit for ES6 classes', function(done) {
+      // This will not work in IE11, but the AngularJS Material CI is only running Chrome.
+      class PizzaController {
+        $onInit() { this.isInitialized = true; }
+      }
+
+      var compileResult = $mdCompiler.compile({
+        template: '<span>Pizza</span>',
+        controller: PizzaController,
+        controllerAs: 'pizzaCtrl',
+        bindToController: true,
+        locals: {topping: 'Cheese'},
+      });
+
+      compileResult.then(function(compileOutput) {
+        var ctrl = compileOutput.link(pageScope).scope().pizzaCtrl;
+        expect(ctrl.isInitialized).toBe(true);
+        expect(ctrl.topping).toBe('Cheese');
+        done();
+      });
+
+      $rootScope.$apply();
+    });
+  });
+
+  describe('AngularJS 1.6+ lifecycle hooks', function() {
+    var $mdCompiler, pageScope, $rootScope;
+
+    beforeEach(module('material.core'));
+
+    beforeEach(inject(function($injector) {
+      $mdCompiler = $injector.get('$mdCompiler');
+      $rootScope = $injector.get('$rootScope');
+      pageScope = $rootScope.$new(false);
+    }));
+
+    it('calls $onInit on initialization', function(done) {
+      var passed = false;
+
+      class TestController {
+        $onInit() { passed = true; }
+      }
+
+      var compileResult = $mdCompiler.compile({
+        template: '<span></span>',
+        controller: TestController,
+        controllerAs: 'vm',
+        bindToController: true
+      });
+
+      compileResult.then(function(compileOutput) {
+        compileOutput.link(pageScope).scope();
+        expect(passed).toBe(true);
+        done();
+      });
+
+      $rootScope.$apply();
+    });
+
+    it('calls $onDestroy on destruction', function(done) {
+      var passed = false;
+
+      class TestController {
+        $onDestroy() { passed = true; }
+      }
+
+      var compileResult = $mdCompiler.compile({
+        template: '<span></span>',
+        controller: TestController,
+        controllerAs: 'vm',
+        bindToController: true
+      });
+
+      compileResult.then(function(compileOutput) {
+        compileOutput.link(pageScope).scope().$destroy();
+        expect(passed).toBe(true);
+        done();
+      });
+
+      $rootScope.$apply();
+    });
+  });
 });

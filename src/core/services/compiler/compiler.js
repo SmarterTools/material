@@ -8,190 +8,117 @@ angular
   .module('material.core')
   .provider('$mdCompiler', MdCompilerProvider);
 
-/**
- * @ngdoc provider
- * @name $mdCompilerProvider
- *
- * @description
- */
-/**
- * @ngdoc service
- * @name $mdCompiler
- * @module material.core.compiler
- * @description
- * The $mdCompiler service is an abstraction of AngularJS's compiler, that allows developers
- * to easily compile an element with options like in a Directive Definition Object.
- *
- * > The compiler powers a lot of components inside of AngularJS Material.
- * > Like the `$mdPanel` or `$mdDialog`.
- *
- * @usage
- *
- * Basic Usage with a template
- *
- * <hljs lang="js">
- *   $mdCompiler.compile({
- *     templateUrl: 'modal.html',
- *     controller: 'ModalCtrl',
- *     locals: {
- *       modal: myModalInstance;
- *     }
- *   }).then(function (compileData) {
- *     compileData.element; // Compiled DOM element
- *     compileData.link(myScope); // Instantiate controller and link element to scope.
- *   });
- * </hljs>
- *
- * Example with a content element
- *
- * <hljs lang="js">
- *
- *   // Create a virtual element and link it manually.
- *   // The compiler doesn't need to recompile the element each time.
- *   var myElement = $compile('<span>Test</span>')(myScope);
- *
- *   $mdCompiler.compile({
- *     contentElement: myElement
- *   }).then(function (compileData) {
- *     compileData.element // Content Element (same as above)
- *     compileData.link // This does nothing when using a contentElement.
- *   });
- * </hljs>
- *
- * > Content Element is a significant performance improvement when the developer already knows that the
- * > compiled element will be always the same and the scope will not change either.
- *
- * The `contentElement` option also supports DOM elements which will be temporary removed and restored
- * at its old position.
- *
- * <hljs lang="js">
- *   var domElement = document.querySelector('#myElement');
- *
- *   $mdCompiler.compile({
- *     contentElement: myElement
- *   }).then(function (compileData) {
- *     compileData.element // Content Element (same as above)
- *     compileData.link // This does nothing when using a contentElement.
- *   });
- * </hljs>
- *
- * The `$mdCompiler` can also query for the element in the DOM itself.
- *
- * <hljs lang="js">
- *   $mdCompiler.compile({
- *     contentElement: '#myElement'
- *   }).then(function (compileData) {
- *     compileData.element // Content Element (same as above)
- *     compileData.link // This does nothing when using a contentElement.
- *   });
- * </hljs>
- *
- */
 MdCompilerProvider.$inject = ['$compileProvider'];
-function MdCompilerProvider($compileProvider) {
-
-  var provider = this;
-
-  /**
-   * @name  $mdCompilerProvider#respectPreAssignBindingsEnabled
-   *
-   * @param {boolean=} respected update the respectPreAssignBindingsEnabled state if provided, otherwise just return
-   * the current Material preAssignBindingsEnabled state
-   * @returns {*} current value if used as getter or itself (chaining) if used as setter
-   *
-   * @description
-   * Call this method to enable/disable whether Material-specific (dialogs/toasts) controllers respect the AngularJS
-   * `$compile.preAssignBindingsEnabled` flag. Note that this doesn't affect directives/components created via
-   * regular AngularJS methods which constitute most Material & user-created components.
-   *
-   * @see [AngularJS documentation for `$compile.preAssignBindingsEnabled`
-   * ](https://code.angularjs.org/1.6.4/docs/api/ng/provider/$compileProvider#preAssignBindingsEnabled)
-   * for more information.
-   *
-   * If disabled (false), the compiler assigns the value of each of the bindings to the
-   * properties of the controller object before the constructor of this object is called.
-   *
-   * If enabled (true) the behavior depends on the AngularJS version used:
-   *
-   *     - `<1.5.10` - bindings are pre-assigned
-   *     - `>=1.5.10 <1.7` - behaves like set to whatever `$compileProvider.preAssignBindingsEnabled()` reports; if
-   *                         the `$compileProvider` flag wasn't set manually, it defaults to pre-assigning bindings
-   *                         with AngularJS `1.5.x` & to calling the constructor first with AngularJS `1.6.x`.
-   *     - `>=1.7` - the compiler calls the constructor first before assigning bindings
-   *
-   * The default value is `false` but will change to `true` in AngularJS Material 1.2.
-   *
-   * It is recommended to set this flag to `true` in AngularJS Material 1.1.x; the only reason it's not set that way
-   * by default is backwards compatibility. Not setting the flag to `true` when
-   * `$compileProvider.preAssignBindingsEnabled()` is set to `false` (i.e. default behavior in AngularJS 1.6.0 or newer)
-   * makes it hard to unit test Material Dialog/Toast controllers using the `$controller` helper as it always follows
-   * the `$compileProvider.preAssignBindingsEnabled()` value.
-   */
-  // TODO change it to `true` in Material 1.2.
-  var respectPreAssignBindingsEnabled = false;
-  this.respectPreAssignBindingsEnabled = function(respected) {
-    if (angular.isDefined(respected)) {
-      respectPreAssignBindingsEnabled = respected;
-      return this;
-    }
-
-    return respectPreAssignBindingsEnabled;
-  };
-
-  /**
-   * @description
-   * This function returns `true` if Material-specific (dialogs/toasts) controllers have bindings pre-assigned in
-   * controller constructors and `false` otherwise.
-   *
-   * Note that this doesn't affect directives/components created via regular AngularJS methods which constitute most
-   * Material & user-created components; their behavior can be checked via `$compileProvider.preAssignBindingsEnabled()`
-   * in AngularJS `>=1.5.10 <1.7.0`.
-   *
-   * @returns {*} current preAssignBindingsEnabled state
-   */
-  function getPreAssignBindingsEnabled() {
-    if (!respectPreAssignBindingsEnabled) {
-      // respectPreAssignBindingsEnabled === false
-      // We're ignoring the AngularJS `$compileProvider.preAssignBindingsEnabled()` value in this case.
-      return true;
-    }
-
-    // respectPreAssignBindingsEnabled === true
-
-    if (typeof $compileProvider.preAssignBindingsEnabled === 'function') {
-      return $compileProvider.preAssignBindingsEnabled();
-    }
-
-    // Flag respected but not present => apply logic based on AngularJS version used.
-    if (angular.version.major === 1 && angular.version.minor < 6) {
-      // AngularJS <1.5.10
-      return true;
-    }
-
-    // AngularJS >=1.7.0
-    return false;
-  }
+function MdCompilerProvider() {
 
   this.$get = ["$q", "$templateRequest", "$injector", "$compile", "$controller",
     function($q, $templateRequest, $injector, $compile, $controller) {
       return new MdCompilerService($q, $templateRequest, $injector, $compile, $controller);
     }];
 
+  /**
+   * @ngdoc service
+   * @name $mdCompiler
+   * @module material.core.compiler
+   * @description
+   * The $mdCompiler service is an abstraction of AngularJS's compiler, that allows developers
+   * to compile an element with options like in a Directive Definition Object.
+   *
+   * > The compiler powers a lot of components inside of AngularJS Material.
+   * > Like the `$mdPanel` or `$mdDialog` services.
+   *
+   * @usage
+   *
+   * Basic Usage with a template
+   *
+   * <hljs lang="js">
+   *   $mdCompiler.compile({
+   *     templateUrl: 'modal.html',
+   *     controller: 'ModalCtrl',
+   *     locals: {
+   *       modal: myModalInstance;
+   *     }
+   *   }).then(function (compileData) {
+   *     compileData.element; // Compiled DOM element
+   *     compileData.link(myScope); // Instantiate controller and link element to scope.
+   *   });
+   * </hljs>
+   *
+   * Example with a content element
+   *
+   * <hljs lang="js">
+   *
+   *   // Create a virtual element and link it manually.
+   *   // The compiler doesn't need to recompile the element each time.
+   *   var myElement = $compile('<span>Test</span>')(myScope);
+   *
+   *   $mdCompiler.compile({
+   *     contentElement: myElement
+   *   }).then(function (compileData) {
+   *     compileData.element // Content Element (same as above)
+   *     compileData.link // This does nothing when using a contentElement.
+   *   });
+   * </hljs>
+   *
+   * > Content Element is a significant performance improvement when the developer already knows
+   * > that the compiled element will be always the same and the scope will not change either.
+   *
+   * The `contentElement` option also supports DOM elements which will be temporary removed and
+   * restored at its old position.
+   *
+   * <hljs lang="js">
+   *   var domElement = document.querySelector('#myElement');
+   *
+   *   $mdCompiler.compile({
+   *     contentElement: myElement
+   *   }).then(function (compileData) {
+   *     compileData.element // Content Element (same as above)
+   *     compileData.link // This does nothing when using a contentElement.
+   *   });
+   * </hljs>
+   *
+   * The `$mdCompiler` can also query for the element in the DOM itself.
+   *
+   * <hljs lang="js">
+   *   $mdCompiler.compile({
+   *     contentElement: '#myElement'
+   *   }).then(function (compileData) {
+   *     compileData.element // Content Element (same as above)
+   *     compileData.link // This does nothing when using a contentElement.
+   *   });
+   * </hljs>
+   *
+   */
   function MdCompilerService($q, $templateRequest, $injector, $compile, $controller) {
 
-    /** @private @const {!angular.$q} */
+    /**
+     * @private @const
+     * @type {!IQService}
+     */
     this.$q = $q;
 
-    /** @private @const {!angular.$templateRequest} */
+    /**
+     * @private @const
+     * @type {!ITemplateRequestService}
+     */
     this.$templateRequest = $templateRequest;
 
-    /** @private @const {!angular.$injector} */
+    /**
+     * @private @const
+     * @type {!IInjectorService}
+     */
     this.$injector = $injector;
 
-    /** @private @const {!angular.$compile} */
+    /**
+     * @private @const
+     * @type{!ICompileService}
+     */
     this.$compile = $compile;
 
-    /** @private @const {!angular.$controller} */
+    /**
+     * @private @const
+     * @type {!IControllerService}
+     */
     this.$controller = $controller;
   }
 
@@ -206,7 +133,7 @@ function MdCompilerProvider($compileProvider) {
    *
    * @param {!Object} options An options object, with the following properties:
    *
-   *    - `controller` - `{string|Function}` Controller fn that should be associated with
+   *    - `controller` - `{string|function}` Controller fn that should be associated with
    *         newly created scope or the name of a registered controller if passed as a string.
    *    - `controllerAs` - `{string=}` A controller alias name. If present the controller will be
    *         published to scope under the `controllerAs` name.
@@ -227,30 +154,29 @@ function MdCompilerProvider($compileProvider) {
    *        dependency. If the result is a promise, it is resolved before its value is
    *        injected into the controller.
    *
-   * @returns {Object} promise A promise, which will be resolved with a `compileData` object.
-   * `compileData` has the following properties:
+   * @returns {Q.Promise<{element: JQLite, link: Function, locals: Object, cleanup: any,
+   *  controller: Object=}>} promise A promise, which will be resolved with a `compileData` object.
+   *  `compileData` has the following properties:
    *
-   *   - `element` - `{element}`: an uncompiled element matching the provided template.
+   *   - `element` - `{JQLite}`: an uncompiled element matching the provided template.
    *   - `link` - `{function(scope)}`: A link function, which, when called, will compile
    *     the element and instantiate the provided controller (if given).
-   *   - `locals` - `{object}`: The locals which will be passed into the controller once `link` is
-   *     called. If `bindToController` is true, they will be coppied to the ctrl instead
-   *
+   *   - `locals` - `{Object}`: The locals which will be passed into the controller once `link` is
+   *     called. If `bindToController` is true, they will be copied to the ctrl instead
    */
   MdCompilerService.prototype.compile = function(options) {
-
     if (options.contentElement) {
       return this._prepareContentElement(options);
     } else {
       return this._compileTemplate(options);
     }
-
   };
 
   /**
-   * Instead of compiling any template, the compiler just fetches an existing HTML element from the DOM and
-   * provides a restore function to put the element back it old DOM position.
+   * Instead of compiling any template, the compiler just fetches an existing HTML element from the
+   * DOM and provides a restore function to put the element back it old DOM position.
    * @param {!Object} options Options to be used for the compiler.
+   * @returns {Q.Promise<{element: JQLite, link: Function, locals: Object, cleanup: any}>}
    */
   MdCompilerService.prototype._prepareContentElement = function(options) {
 
@@ -270,7 +196,8 @@ function MdCompilerProvider($compileProvider) {
   /**
    * Compiles a template by considering all options and waiting for all resolves to be ready.
    * @param {!Object} options Compile options
-   * @returns {!Object} Compile data with link function.
+   * @returns {!Q.Promise<{element: JQLite, link: Function, locals: Object, cleanup: any}>} Compile
+   *  data with link function.
    */
   MdCompilerService.prototype._compileTemplate = function(options) {
 
@@ -319,7 +246,7 @@ function MdCompilerProvider($compileProvider) {
    * @param {!Object} locals Locals to be injected to the controller if present
    * @param {!JQLite} element Element to be compiled and linked
    * @param {!Object} options Options to be used for linking.
-   * @returns {!Object} Compile data with link function.
+   * @returns {!{element: JQLite, link: Function, locals: Object, cleanup: any, controller: Object}} Compile data with link function.
    */
   MdCompilerService.prototype._compileElement = function(locals, element, options) {
     var self = this;
@@ -345,6 +272,15 @@ function MdCompilerProvider($compileProvider) {
         // Create the specified controller instance.
         var ctrl = self._createController(options, injectLocals, locals);
 
+        // Registering extra $destroy listeners should be avoided.
+        // Only register the listener if the controller implements a $onDestroy hook.
+        if (angular.isFunction(ctrl.$onDestroy)) {
+          scope.$on('$destroy', function() {
+            // Call the $onDestroy hook if it's present on the controller.
+            angular.isFunction(ctrl.$onDestroy) && ctrl.$onDestroy();
+          });
+        }
+
         // Unique identifier for AngularJS Route ngView controllers.
         element.data('$ngControllerController', ctrl);
         element.children().data('$ngControllerController', ctrl);
@@ -363,23 +299,20 @@ function MdCompilerProvider($compileProvider) {
 
   /**
    * Creates and instantiates a new controller with the specified options.
-   * @param {!Object} options Options that include the controller
+   * @param {!Object} options Options that include the controller function or string.
    * @param {!Object} injectLocals Locals to to be provided in the controller DI.
    * @param {!Object} locals Locals to be injected to the controller.
    * @returns {!Object} Created controller instance.
    */
   MdCompilerService.prototype._createController = function(options, injectLocals, locals) {
-    var invokeCtrl = this.$controller(options.controller, injectLocals, true, options.controllerAs);
+    var ctrl = this.$controller(options.controller, injectLocals);
 
-    if (getPreAssignBindingsEnabled() && options.bindToController) {
-      angular.extend(invokeCtrl.instance, locals);
+    if (options.bindToController) {
+      angular.extend(ctrl, locals);
     }
 
-    // Instantiate and initialize the specified controller.
-    var ctrl = invokeCtrl();
-
-    if (!getPreAssignBindingsEnabled() && options.bindToController) {
-      angular.extend(invokeCtrl.instance, locals);
+    if (options.controllerAs) {
+      injectLocals.$scope[options.controllerAs] = ctrl;
     }
 
     // Call the $onInit hook if it's present on the controller.
@@ -392,12 +325,11 @@ function MdCompilerProvider($compileProvider) {
    * Fetches an element removing it from the DOM and using it temporary for the compiler.
    * Elements which were fetched will be restored after use.
    * @param {!Object} options Options to be used for the compilation.
-   * @returns {{element: !JQLite, restore: !Function}}
+   * @returns {{element: !JQLite, restore: !function}}
    */
   MdCompilerService.prototype._fetchContentElement = function(options) {
-
     var contentEl = options.contentElement;
-    var restoreFn = null;
+    var restoreFn;
 
     if (angular.isString(contentEl)) {
       contentEl = document.querySelector(contentEl);
@@ -414,7 +346,7 @@ function MdCompilerProvider($compileProvider) {
           if (contentEl.parentNode) {
             contentEl.parentNode.removeChild(contentEl);
           }
-        }
+        };
       }
     }
 
@@ -438,7 +370,7 @@ function MdCompilerProvider($compileProvider) {
           // before.
           parent.insertBefore(element, nextSibling);
         }
-      }
+      };
     }
   };
 }
